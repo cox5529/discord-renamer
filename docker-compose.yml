@@ -1,0 +1,21 @@
+version: '3.3'
+secrets:
+  TOKEN:
+    external:
+      name: Token
+  CLIENT_ID:
+    external:
+      name: ClientId
+  GUILD_ID:
+    external:
+      name: GuildId
+services:
+  bot:
+    image: ghcr.io/cox5529/discord-narrator:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    secrets:
+      - TOKEN
+      - CLIENT_ID
+      - GUILD_ID
