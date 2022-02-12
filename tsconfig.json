@@ -8,8 +8,7 @@
     "sourceMap": false,
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
-    "resolveJsonModule": true,
-    "outDir": "build"
+    "resolveJsonModule": true
   },
   "include": ["./src/**/*"]
 }
