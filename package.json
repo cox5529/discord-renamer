@@ -5,7 +5,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "build": "tsc",
+    "build": "rollup --config rollup.config.js --no-watch",
     "start": "node build/index.js"
   },
   "author": "",
@@ -21,6 +21,11 @@
     "node-html-parser": "^5.2.0"
   },
   "devDependencies": {
+    "@rollup/plugin-commonjs": "^21.0.1",
+    "@rollup/plugin-json": "^4.1.0",
+    "@rollup/plugin-typescript": "^8.3.0",
+    "rollup": "^2.67.2",
+    "rollup-plugin-terser": "^7.0.2",
     "typescript": "^4.5.5"
   }
 }

@@ -5,6 +5,11 @@ import { SlashCommandBuilder } from '@discordjs/builders';
 import fetch from 'node-fetch';
 import { parse } from 'node-html-parser';
 import { decode } from 'html-entities';
+import dotenv from 'dotenv';
+import { config as dockerConfig } from './docker-secrets';
+
+dotenv.config();
+dockerConfig();
 
 const token = process.env.TOKEN;
 const clientId = process.env.CLIENT_ID;
