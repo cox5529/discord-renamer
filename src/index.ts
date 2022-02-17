@@ -27,7 +27,7 @@ async function main() {
       .setDescription('Tells a story')
       .addStringOption((o) => o.setName('theme1').setDescription('the first theme of the story').setRequired(true))
       .addStringOption((o) => o.setName('theme2').setDescription('the second theme of the story').setRequired(true))
-      .addStringOption((o) => o.setName('others').setDescription('optional extra themes separated by spaces')),
+      .addStringOption((o) => o.setName('others').setDescription('optional extra themes separated by commas')),
   ].map((command) => command.toJSON());
 
   const rest = new REST({ version: '9' }).setToken(token);
@@ -55,11 +55,13 @@ async function handleInteraction(interaction: CommandInteraction<CacheType>) {
   if (commandName === 'story') {
     const theme1 = options.getString('theme1');
     const theme2 = options.getString('theme2');
-    const otherThemes = (options.getString('others') ?? '').split(' ').join(' and ');
+    const otherThemes = (options.getString('others') ?? '').split(',');
 
     const openai = new OpenAIApi(new Configuration({ apiKey: process.env.OPENAI_KEY }));
     const response = await openai.createCompletion('text-davinci-001', {
-      prompt: `Tell me a story about ${theme1} and ${theme2}${otherThemes.length ? ` and ${otherThemes}` : ''}`,
+      prompt: `Tell me a story about ${theme1} and ${theme2}${
+        otherThemes.length ? ` and ${otherThemes.join(' and ')}` : ''
+      }`,
       max_tokens: 2000,
       temperature: 0.9,
     });
@@ -69,8 +71,22 @@ async function handleInteraction(interaction: CommandInteraction<CacheType>) {
       return;
     }
 
-    const text = response.data.choices[0].text.trim();
-    await interaction.editReply(decode(text));
+    const maxLen = 1500;
+    let text = response.data.choices[0].text.trim();
+
+    text += `\n\nTheme 1: ${theme1}\nTheme 2: ${theme2}\nOther themes: ${otherThemes.join(', ')}`;
+
+    if (text.length < maxLen) {
+      await interaction.editReply(decode(text));
+    } else {
+      let len = text.length / maxLen;
+      await interaction.editReply(decode(text.substring(0, maxLen)));
+      for (let i = 1; i < len + 1; i++) {
+        const start = i * maxLen;
+        const message = text.substring(start, start + maxLen);
+        await interaction.followUp(decode(message));
+      }
+    }
   }
 }
 
