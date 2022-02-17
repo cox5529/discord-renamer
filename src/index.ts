@@ -38,7 +38,7 @@ async function main() {
       await interaction.reply('Generating story...');
       handleInteraction(interaction);
     } catch (e) {
-      await interaction.followUp(`There was an error. Try again.`);
+      await interaction.editReply(`There was an error. Try again.`);
     }
   });
 
@@ -65,12 +65,12 @@ async function handleInteraction(interaction: CommandInteraction<CacheType>) {
     });
 
     if (!response.data?.choices?.length || response.status !== 200) {
-      await interaction.followUp('No response from GPT-3 received. Please try again.');
+      await interaction.editReply('No response from GPT-3 received. Please try again.');
       return;
     }
 
     const text = response.data.choices[0].text.trim();
-    await interaction.followUp(decode(text));
+    await interaction.editReply(decode(text));
   }
 }
 
