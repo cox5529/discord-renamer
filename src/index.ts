@@ -68,7 +68,7 @@ async function handleInteraction(interaction: CommandInteraction<CacheType>) {
       return;
     }
 
-    const text = response.data.choices[0].text;
+    const text = response.data.choices[0].text.trim();
     await interaction.reply(decode(text));
   }
 }
