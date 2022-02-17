@@ -2,11 +2,10 @@ import { Client, Intents } from 'discord.js';
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v9';
 import { SlashCommandBuilder } from '@discordjs/builders';
-import fetch from 'node-fetch';
-import { parse } from 'node-html-parser';
 import { decode } from 'html-entities';
 import dotenv from 'dotenv';
 import { config as dockerConfig } from './docker-secrets';
+import { Configuration, OpenAIApi } from 'openai';
 
 dotenv.config();
 dockerConfig();
@@ -41,21 +40,20 @@ async function main() {
       const theme1 = options.getString('theme1');
       const theme2 = options.getString('theme2');
 
-      const uri = `theme1=${encodeURIComponent(theme1)}&theme2=${encodeURIComponent(theme2)}&createstory=`;
-
-      const response = await fetch('https://narrative-device.herokuapp.com/createstory', {
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
-        },
-        method: 'POST',
-        body: uri,
+      const openai = new OpenAIApi(new Configuration({ apiKey: process.env.OPENAI_KEY }));
+      const response = await openai.createCompletion('text-davinci-001', {
+        prompt: `Tell me a story about ${theme1} and ${theme2}`,
+        max_tokens: 1000,
+        temperature: 0.9,
       });
 
-      const html = await response.text();
-      const document = parse(html);
-      const data = document.querySelector('#preprompt1 ~ p').innerText;
+      if (!response.data?.choices?.length) {
+        await interaction.reply('No response from GPT-3 received. Please try again.');
+        return;
+      }
 
-      await interaction.reply(decode(data));
+      const text = response.data.choices[0].text;
+      await interaction.reply(decode(text));
     }
   });
 

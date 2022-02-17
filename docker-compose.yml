@@ -9,6 +9,9 @@ secrets:
   GUILD_ID:
     external:
       name: GuildId
+  OPENAI_KEY:
+    external:
+      name: OpenAiKey
 services:
   bot:
     image: ghcr.io/cox5529/discord-narrator:latest
@@ -19,3 +22,4 @@ services:
       - TOKEN
       - CLIENT_ID
       - GUILD_ID
+      - OPENAI_KEY
