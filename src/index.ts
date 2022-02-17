@@ -1,4 +1,4 @@
-import { Client, Intents } from 'discord.js';
+import { CacheType, Client, CommandInteraction, Intents, Interaction } from 'discord.js';
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v9';
 import { SlashCommandBuilder } from '@discordjs/builders';
@@ -33,27 +33,10 @@ async function main() {
 
   client.on('interactionCreate', async (interaction) => {
     if (!interaction.isCommand()) return;
-
-    const { commandName, options } = interaction;
-
-    if (commandName === 'story') {
-      const theme1 = options.getString('theme1');
-      const theme2 = options.getString('theme2');
-
-      const openai = new OpenAIApi(new Configuration({ apiKey: process.env.OPENAI_KEY }));
-      const response = await openai.createCompletion('text-davinci-001', {
-        prompt: `Tell me a story about ${theme1} and ${theme2}`,
-        max_tokens: 1000,
-        temperature: 0.9,
-      });
-
-      if (!response.data?.choices?.length) {
-        await interaction.reply('No response from GPT-3 received. Please try again.');
-        return;
-      }
-
-      const text = response.data.choices[0].text;
-      await interaction.reply(decode(text));
+    try {
+      handleInteraction(interaction);
+    } catch (e) {
+      await interaction.reply(`There was an error. Try again.`);
     }
   });
 
@@ -62,6 +45,30 @@ async function main() {
   await rest.put(Routes.applicationCommands(clientId), { body: commands }).catch((err) => console.error(err));
 
   client.login(token);
+}
+
+async function handleInteraction(interaction: CommandInteraction<CacheType>) {
+  const { commandName, options } = interaction;
+
+  if (commandName === 'story') {
+    const theme1 = options.getString('theme1');
+    const theme2 = options.getString('theme2');
+
+    const openai = new OpenAIApi(new Configuration({ apiKey: process.env.OPENAI_KEY }));
+    const response = await openai.createCompletion('text-davinci-001', {
+      prompt: `Tell me a story about ${theme1} and ${theme2}`,
+      max_tokens: 5000,
+      temperature: 0.9,
+    });
+
+    if (!response.data?.choices?.length || response.status !== 200) {
+      await interaction.reply('No response from GPT-3 received. Please try again.');
+      return;
+    }
+
+    const text = response.data.choices[0].text;
+    await interaction.reply(decode(text));
+  }
 }
 
 main();
