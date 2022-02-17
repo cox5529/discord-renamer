@@ -35,9 +35,10 @@ async function main() {
   client.on('interactionCreate', async (interaction) => {
     if (!interaction.isCommand()) return;
     try {
+      await interaction.reply('Generating story...');
       handleInteraction(interaction);
     } catch (e) {
-      await interaction.reply(`There was an error. Try again.`);
+      await interaction.followUp(`There was an error. Try again.`);
     }
   });
 
@@ -64,12 +65,12 @@ async function handleInteraction(interaction: CommandInteraction<CacheType>) {
     });
 
     if (!response.data?.choices?.length || response.status !== 200) {
-      await interaction.reply('No response from GPT-3 received. Please try again.');
+      await interaction.followUp('No response from GPT-3 received. Please try again.');
       return;
     }
 
     const text = response.data.choices[0].text.trim();
-    await interaction.reply(decode(text));
+    await interaction.followUp(decode(text));
   }
 }
 
