@@ -28,6 +28,11 @@ async function main() {
       .addStringOption((o) => o.setName('theme1').setDescription('the first theme of the story').setRequired(true))
       .addStringOption((o) => o.setName('theme2').setDescription('the second theme of the story').setRequired(true))
       .addStringOption((o) => o.setName('others').setDescription('optional extra themes separated by commas')),
+    new SlashCommandBuilder()
+      .setName('poem')
+      .setDescription('Writes a poem')
+      .addStringOption((o) => o.setName('theme1').setDescription('the first theme of the poem').setRequired(true))
+      .addStringOption((o) => o.setName('theme2').setDescription('the second theme of the poem').setRequired(true)),
   ].map((command) => command.toJSON());
 
   const rest = new REST({ version: '9' }).setToken(token);
@@ -52,40 +57,43 @@ async function main() {
 async function handleInteraction(interaction: CommandInteraction<CacheType>) {
   const { commandName, options } = interaction;
 
+  let prompt = '';
   if (commandName === 'story') {
-    const theme1 = options.getString('theme1');
-    const theme2 = options.getString('theme2');
-    const otherThemes = (options.getString('others') ?? '').split(',');
+    prompt = 'Tell me a story about';
+  } else {
+    prompt = 'Write a poem about';
+  }
 
-    const openai = new OpenAIApi(new Configuration({ apiKey: process.env.OPENAI_KEY }));
-    const response = await openai.createCompletion('text-davinci-001', {
-      prompt: `Tell me a story about ${theme1} and ${theme2}${
-        otherThemes.length ? ` and ${otherThemes.join(' and ')}` : ''
-      }`,
-      max_tokens: 2000,
-      temperature: 0.9,
-    });
+  const theme1 = options.getString('theme1');
+  const theme2 = options.getString('theme2');
+  const otherThemes = (options.getString('others') ?? '').split(',');
 
-    if (!response.data?.choices?.length || response.status !== 200) {
-      await interaction.editReply('No response from GPT-3 received. Please try again.');
-      return;
-    }
+  const openai = new OpenAIApi(new Configuration({ apiKey: process.env.OPENAI_KEY }));
+  const response = await openai.createCompletion('text-davinci-001', {
+    prompt: `${prompt} ${theme1} and ${theme2}${otherThemes.length ? ` and ${otherThemes.join(' and ')}` : ''}`,
+    max_tokens: 2000,
+    temperature: 0.9,
+  });
 
-    const maxLen = 1500;
-    let text = response.data.choices[0].text.trim();
+  if (!response.data?.choices?.length || response.status !== 200) {
+    await interaction.editReply('No response from GPT-3 received. Please try again.');
+    return;
+  }
 
-    text += `\n\nTheme 1: ${theme1}\nTheme 2: ${theme2}\nOther themes: ${otherThemes.join(', ')}`;
+  const maxLen = 1500;
+  let text = response.data.choices[0].text.trim();
 
-    if (text.length < maxLen) {
-      await interaction.editReply(decode(text));
-    } else {
-      let len = text.length / maxLen;
-      await interaction.editReply(decode(text.substring(0, maxLen)));
-      for (let i = 1; i < len + 1; i++) {
-        const start = i * maxLen;
-        const message = text.substring(start, start + maxLen);
-        await interaction.followUp(decode(message));
-      }
+  text += `\n\nTheme 1: ${theme1}\nTheme 2: ${theme2}\nOther themes: ${otherThemes.join(', ')}`;
+
+  if (text.length < maxLen) {
+    await interaction.editReply(decode(text));
+  } else {
+    let len = text.length / maxLen;
+    await interaction.editReply(decode(text.substring(0, maxLen)));
+    for (let i = 1; i < len + 1; i++) {
+      const start = i * maxLen;
+      const message = text.substring(start, start + maxLen);
+      await interaction.followUp(decode(message));
     }
   }
 }
