@@ -26,7 +26,8 @@ async function main() {
       .setName('story')
       .setDescription('Tells a story')
       .addStringOption((o) => o.setName('theme1').setDescription('the first theme of the story').setRequired(true))
-      .addStringOption((o) => o.setName('theme2').setDescription('the second theme of the story').setRequired(true)),
+      .addStringOption((o) => o.setName('theme2').setDescription('the second theme of the story').setRequired(true))
+      .addStringOption((o) => o.setName('extra themes').setDescription('optional extra themes separated by spaces')),
   ].map((command) => command.toJSON());
 
   const rest = new REST({ version: '9' }).setToken(token);
@@ -53,11 +54,12 @@ async function handleInteraction(interaction: CommandInteraction<CacheType>) {
   if (commandName === 'story') {
     const theme1 = options.getString('theme1');
     const theme2 = options.getString('theme2');
+    const otherThemes = (options.getString('extra themes') ?? '').split(' ').join(' and ');
 
     const openai = new OpenAIApi(new Configuration({ apiKey: process.env.OPENAI_KEY }));
     const response = await openai.createCompletion('text-davinci-001', {
-      prompt: `Tell me a story about ${theme1} and ${theme2}`,
-      max_tokens: 5000,
+      prompt: `Tell me a story about ${theme1} and ${theme2}${otherThemes.length ? ` and ${otherThemes}` : ''}`,
+      max_tokens: 2000,
       temperature: 0.9,
     });
 
