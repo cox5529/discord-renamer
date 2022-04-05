@@ -25,14 +25,11 @@ async function main() {
     new SlashCommandBuilder()
       .setName('story')
       .setDescription('Tells a story')
-      .addStringOption((o) => o.setName('theme1').setDescription('the first theme of the story').setRequired(true))
-      .addStringOption((o) => o.setName('theme2').setDescription('the second theme of the story').setRequired(true))
-      .addStringOption((o) => o.setName('others').setDescription('optional extra themes separated by commas')),
+      .addStringOption((o) => o.setName('theme').setDescription('"Tell me a story about: "').setRequired(true)),
     new SlashCommandBuilder()
       .setName('poem')
       .setDescription('Writes a poem')
-      .addStringOption((o) => o.setName('theme1').setDescription('the first theme of the poem').setRequired(true))
-      .addStringOption((o) => o.setName('theme2').setDescription('the second theme of the poem').setRequired(true)),
+      .addStringOption((o) => o.setName('theme').setDescription('"Write me a poem about: "').setRequired(true)),
   ].map((command) => command.toJSON());
 
   const rest = new REST({ version: '9' }).setToken(token);
@@ -64,13 +61,11 @@ async function handleInteraction(interaction: CommandInteraction<CacheType>) {
     prompt = 'Write a poem about';
   }
 
-  const theme1 = options.getString('theme1');
-  const theme2 = options.getString('theme2');
-  const otherThemes = (options.getString('others') ?? '').split(',');
+  const theme = options.getString('theme');
 
   const openai = new OpenAIApi(new Configuration({ apiKey: process.env.OPENAI_KEY }));
   const response = await openai.createCompletion('text-davinci-001', {
-    prompt: `${prompt} ${theme1} and ${theme2}${otherThemes.length ? ` and ${otherThemes.join(' and ')}` : ''}`,
+    prompt: `${prompt} ${theme}`,
     max_tokens: 2000,
     temperature: 0.9,
   });
@@ -82,8 +77,6 @@ async function handleInteraction(interaction: CommandInteraction<CacheType>) {
 
   const maxLen = 1500;
   let text = response.data.choices[0].text.trim();
-
-  text += `\n\nTheme 1: ${theme1}\nTheme 2: ${theme2}\nOther themes: ${otherThemes.join(', ')}`;
 
   if (text.length < maxLen) {
     await interaction.editReply(decode(text));
