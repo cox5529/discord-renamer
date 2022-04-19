@@ -72,7 +72,7 @@ async function handleInteraction(interaction: CommandInteraction<CacheType>) {
     prompt = '';
   }
 
-  const theme = options.getString('theme');
+  const theme = options.getString('theme') || options.getString('prompt');
 
   const openai = new OpenAIApi(new Configuration({ apiKey: process.env.OPENAI_KEY }));
   const response = await openai.createCompletion('text-davinci-001', {
