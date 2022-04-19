@@ -89,7 +89,7 @@ async function handleInteraction(interaction: CommandInteraction<CacheType>) {
   const maxLen = 1500;
   let text = response.data.choices[0].text.trim();
   if (commandName === 'prompt') {
-    text += `Prompt: ${theme}\n`;
+    text = `Prompt: ${theme}\n\n${text}`;
   }
 
   if (text.length < maxLen) {
