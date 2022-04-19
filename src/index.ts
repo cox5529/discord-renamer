@@ -30,6 +30,15 @@ async function main() {
       .setName('poem')
       .setDescription('Writes a poem')
       .addStringOption((o) => o.setName('theme').setDescription('"Write me a poem about: "').setRequired(true)),
+    new SlashCommandBuilder()
+      .setName('prompt')
+      .setDescription('Asks an AI to respond to your prompt')
+      .addStringOption((o) =>
+        o
+          .setName('prompt')
+          .setDescription('The prompt for the AI to respond to. Ask it to do anything!')
+          .setRequired(true)
+      ),
   ].map((command) => command.toJSON());
 
   const rest = new REST({ version: '9' }).setToken(token);
@@ -56,16 +65,18 @@ async function handleInteraction(interaction: CommandInteraction<CacheType>) {
 
   let prompt = '';
   if (commandName === 'story') {
-    prompt = 'Tell me a story about';
+    prompt = 'Tell me a story about ';
+  } else if (commandName === 'poem') {
+    prompt = 'Write a poem about ';
   } else {
-    prompt = 'Write a poem about';
+    prompt = '';
   }
 
   const theme = options.getString('theme');
 
   const openai = new OpenAIApi(new Configuration({ apiKey: process.env.OPENAI_KEY }));
   const response = await openai.createCompletion('text-davinci-001', {
-    prompt: `${prompt} ${theme}`,
+    prompt: `${prompt}${theme}`,
     max_tokens: 2000,
     temperature: 0.9,
   });
