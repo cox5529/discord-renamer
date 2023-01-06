@@ -15,4 +15,4 @@ jobs:
       - name: Push image
         run: docker-compose push
       - name: Deploy stack
-        run: docker stack deploy --with-registry-auth --compose-file docker-compose.yml --prune discord
+        run: docker stack deploy --with-registry-auth --compose-file docker-compose.yml --prune discord-renamer

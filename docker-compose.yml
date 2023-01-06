@@ -2,16 +2,13 @@ version: '3.3'
 secrets:
   TOKEN:
     external:
-      name: Token
-  CLIENT_ID:
+      name: RenamerToken
+  MEMBER_ID:
     external:
-      name: ClientId
+      name: RenamerClientId
   GUILD_ID:
     external:
-      name: GuildId
-  OPENAI_KEY:
-    external:
-      name: OpenAiKey
+      name: RenamerGuildId
 services:
   bot:
     image: ghcr.io/cox5529/discord-narrator:latest
@@ -20,6 +17,5 @@ services:
       dockerfile: Dockerfile
     secrets:
       - TOKEN
-      - CLIENT_ID
       - GUILD_ID
-      - OPENAI_KEY
+      - MEMBER_ID
